@@ -14,11 +14,12 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     # Create a DataFrame with hypothetical sales data
+    dates = pd.date_range('2024-01-01', periods=100)
     data = {
-        'Date': pd.date_range('2024-01-01', periods=100),
+        'Date': np.random.choice(dates, 100),
         'Region': np.random.choice(['North', 'South', 'East', 'West'], 100),
         'Sales': np.random.randint(100, 5000, 100),
-        'Product_Category': np.random.choice(['A', 'B', 'C', 'D'], 100)
+        'Product_Category': np.random.choice(['Electronics', 'Clothing', 'Home Goods', 'Services'], 100)
     }
     df = pd.DataFrame(data)
     df['Date'] = df['Date'].dt.date # Keep just the date part
@@ -41,17 +42,17 @@ with st.sidebar:
     )
 
     # 2. Product Category Filter (Selectbox)
-    category_options = ['All'] + list(df['Product_Category'].unique())
+    category_options = ['All Categories'] + list(df['Product_Category'].unique())
     selected_category = st.selectbox(
         "Select Product Category:",
         options=category_options,
-        index=0 # Default to 'All'
+        index=0 # Default to 'All Categories'
     )
 
 # --- Apply Filters ---
 df_filtered = df[df['Region'].isin(selected_regions)]
 
-if selected_category != 'All':
+if selected_category != 'All Categories':
     df_filtered = df_filtered[df_filtered['Product_Category'] == selected_category]
 
 # --- Main Content Layout ---
@@ -75,6 +76,7 @@ with col3:
     total_transactions = df_filtered.shape[0]
     st.metric(label="📦 Total Transactions", value=f"{total_transactions:,}")
 
+
 ## Visualization Section
 st.subheader("Data Visualizations")
 viz_col1, viz_col2 = st.columns(2)
@@ -95,6 +97,7 @@ with viz_col1:
 # Visualization 2: Sales Trend Over Time (Line Chart)
 with viz_col2:
     st.markdown("**Sales Trend**")
+    # Group by date to get daily totals
     date_sales = df_filtered.groupby('Date')['Sales'].sum().reset_index()
     fig_line = px.line(
         date_sales, 
@@ -107,7 +110,7 @@ with viz_col2:
 
 ## Raw Data View
 st.subheader("Filtered Data Table")
-st.dataframe(df_filtered, height=250)
+st.dataframe(df_filtered, height=250, use_container_width=True)
 
 # Footer
 st.markdown("---")
